@@ -5,10 +5,10 @@ import re
 import subprocess
 import uuid
 import datetime
-import os
+import os.path
 
 RSS_FEED = ''
-ROOT_DIR = '/home/kerp/rss'
+ROOT_DIR = ''
 DOWNLOAD_FILE = ROOT_DIR + '/downloaded'
 REGEX_FILE = ROOT_DIR + '/regex'
 LOG_FILE = ROOT_DIR + '/log.txt'
@@ -58,14 +58,19 @@ def parse_rss(feed_url):
 
    log_file.close()
 
-def setup():
-   open(LOG_FILE, 'w')
-   open(DOWNLOAD_FILE, 'w')
-   open(REGEX_FILE, 'w')
 
+def setup():
+   if not os.path.isdir(ROOT_DIR):
+      print("ROOT_DIR: " + ROOT_DIR + " doesn't exist")
+
+   if not os.path.isdir(TORRENT_WATCH_DIR):
+      print("TORRENT_WATCH_DIR: " + TORRENT_WATCH_DIR + " doesn't exist")
+
+   open(REGEX_FILE, 'w')
+   open(DOWNLOAD_FILE, 'w')
 
 if __name__ == "__main__":
-
-   setup()
+   if not os.path.exists(REGEX_FILE):
+      setup()
 
    parse_rss(RSS_FEED)
