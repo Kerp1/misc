@@ -34,8 +34,12 @@ class Py3status:
 
     def wifi_status(self, i3_output_list, i3_config):
         response = {}
-        command_output = subprocess.check_output(["iw", "dev", self.interface, "link"],
+        try:
+            command_output = subprocess.check_output(["iw", "dev", self.interface, "link"],
                                                   stderr=subprocess.STDOUT).decode("UTF-8")
+        except Exception as e:
+            response['full_text'] = self.template.format("No connection")
+            return response
 
         if command_output.startswith("Not connected"):
             response['full_text'] = self.template.format("No connection")
