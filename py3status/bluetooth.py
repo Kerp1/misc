@@ -54,6 +54,8 @@ class Py3status:
     format_no_power_prefix = 'BT: '
     format_no_conn_prefix = 'BT: '
     format_prefix = 'BT: '
+    icon_color_up = "#FFFFFF"
+    icon_color_down = "#FF0000"
 
     def __init__(self):
         self.waiting_for_unblock = False
@@ -82,9 +84,11 @@ class Py3status:
         hcitool name `hcitool con | sed -n -r 's/.*([0-9A-F:]{17}).*/\\1/p'`
         """
         color = self.py3.COLOR_BAD
+        icon_color = self.icon_color_up
         cached_until = self.py3.time_in(self.cache_timeout)
         if not self._bluetooth_has_power():
             output = self._create_output_string(self.format_no_power_prefix, self.format_no_power)
+            icon_color = self.icon_color_down
             if self.waiting_for_unblock:
                 cached_until = self.py3.time_in(0)
         else:
@@ -108,6 +112,7 @@ class Py3status:
 
         response = {
             'icon': os.path.dirname(os.path.abspath(__file__)) + "/icons/bluetooth.xbm",
+            'icon_color': icon_color,
             'cached_until': cached_until,
             'full_text': output,
             'color': color,
@@ -120,6 +125,10 @@ class Py3status:
             call(shlex.split("rfkill unblock bluetooth"))
             call(shlex.split("sudo hciconfig hci0 up"))
             self.waiting_for_unblock = True
+        else:
+            call(shlex.split("rfkill block bluetooth"))
+            call(shlex.split("sudo hciconfig hci0 down"))
+
 
 if __name__ == "__main__":
     """
