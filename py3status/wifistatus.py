@@ -19,7 +19,7 @@ class Py3status:
     interface = "wlp58s0"
     template = "{}"
 
-    @staticmethod    
+    @staticmethod
     def get_icon(signal_strength):
         icon_name = next(icon_name for (icon_name, threshold) in ICONS if signal_strength < threshold)
         return os.path.dirname(os.path.abspath(__file__)) + "/icons/" + icon_name

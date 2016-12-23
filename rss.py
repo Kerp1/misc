@@ -20,7 +20,7 @@ def torrent_already_downloaded(regex, episode):
       for downloaded in downloaded_list:
          if regex + ' ' + episode + '\n' == downloaded:
             return True
-            
+
    return False
 
 def add_to_downloaded_list(regex, episode):
@@ -39,7 +39,7 @@ def download_torrent(link, to_path):
    subprocess.Popen(['wget',
                        link,
                     '--output-document=' + to_path + str(uuid.uuid4()) + '.torrent',
-                    '--output-file=' + ROOT_DIR + '/wget_log'])   
+                    '--output-file=' + ROOT_DIR + '/wget_log'])
 
 def parse_rss(feed_url):
    log_file = open(LOG_FILE, 'a')
@@ -48,7 +48,7 @@ def parse_rss(feed_url):
    for regex in regex_list:
       for entry in rss_feed['entries']:
          title = entry.title.encode('utf-8')
-         match = regex.match(title) 
+         match = regex.match(title)
          if match:
             print(title)
             if not torrent_already_downloaded(regex.pattern, match.group(1)):
