@@ -34,8 +34,7 @@ class Py3status:
     def get_ssid(rows):
         return rows[1].split(' ')[1]
 
-    @staticmethod
-    def create_no_connection_response():
+    def _create_no_connection_response(self):
         return {
             'full_text': 'No connnection',
             'cached_until': self.py3.time_in(self.error_cache_timeout),
@@ -47,10 +46,10 @@ class Py3status:
             command_output = subprocess.check_output(["iw", "dev", self.interface, "link"],
                                                   stderr=subprocess.STDOUT).decode("UTF-8")
         except Exception as e:
-            return self.create_no_connection_response()
+            return self._create_no_connection_response()
 
         if command_output.startswith("Not connected"):
-            return self.create_no_connection_response()
+            return self._create_no_connection_response()
         else:
             rows = command_output.split('\n')
 
