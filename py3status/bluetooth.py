@@ -60,14 +60,16 @@ class Py3status:
     def __init__(self):
         self.waiting_for_unblock = False
 
-    @staticmethod
-    def parse_command(command, regex):
-        command_output = check_output(shlex.split(command)).decode('utf-8')
-        return re.findall(regex, command_output)
+    def _parse_command(self, command, regex):
+        command_output = self.call_command(command).decode('utf-8')
+        if command_output:
+            return re.findall(regex, command_output)
+        else:
+            return []
 
     def _bluetooth_has_power(self):
-        rfkill_length = len(self.parse_command('rfkill list', BTBLOCKED_RE))
-        devices_length = len(self.parse_command('hcitool dev', BTSTATUS_RE))
+        rfkill_length = len(self._parse_command('rfkill list', BTBLOCKED_RE))
+        devices_length = len(self._parse_command('hcitool dev', BTSTATUS_RE))
 
 
         return rfkill_length > 0 and devices_length > 0
@@ -77,6 +79,19 @@ class Py3status:
                                     dict(format_prefix=prefix,
                                          format=info)
                                    )
+
+    def _create_error_response(self):
+        return {
+            cached_until: self.py4.time_in(0),
+            full_text: "Error",
+        }
+
+    @staticmethod
+    def call_command(command):
+        try:
+            return check_output(shlex.split(command))
+        except Exception as e:
+            return False
 
     def bluetooth(self):
         """
@@ -93,17 +108,21 @@ class Py3status:
                 cached_until = self.py3.time_in(0)
         else:
             self.waiting_for_unblock = False
-            out = check_output(shlex.split('hcitool con'))
+            out = self.call_command('hcitool con')
+            if not out:
+                return self._create_error_response()
+
             macs = set(re.findall(BTMAC_RE, out.decode('utf-8')))
             if macs:
                 data = []
                 for mac in macs:
-                    out = check_output(shlex.split('hcitool name %s' % mac))
-                    fmt_str = self.py3.safe_format(
-                        self.format,
-                        {'name': out.strip().decode('utf-8'), 'mac': mac}
-                    )
-                    data.append(fmt_str)
+                    out = self.call_command('hcitool name %s' % mac)
+                    if out:
+                        fmt_str = self.py3.safe_format(
+                            self.format,
+                            {'name': out.strip().decode('utf-8'), 'mac': mac}
+                        )
+                        data.append(fmt_str)
 
                 output = self._create_output_string(self.format_prefix, self.device_separator.join(data))
                 color = self.py3.COLOR_GOOD
