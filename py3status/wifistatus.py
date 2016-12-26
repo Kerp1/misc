@@ -16,8 +16,10 @@ ICONS = [("wlan1.xbm", -90),
 class Py3status:
     # Available configuration parameters
     cache_timeout = 30
+    error_cache_timeout = 10
     interface = "wlp58s0"
     template = "{}"
+    icon_color = "#00AA00"
 
     @staticmethod
     def get_icon(signal_strength):
@@ -32,17 +34,23 @@ class Py3status:
     def get_ssid(rows):
         return rows[1].split(' ')[1]
 
+    @staticmethod
+    def create_no_connection_response():
+        return {
+            'full_text': 'No connnection',
+            'cached_until': self.py3.time_in(self.error_cache_timeout),
+        }
+
     def wifi_status(self, i3_output_list, i3_config):
         response = {}
         try:
             command_output = subprocess.check_output(["iw", "dev", self.interface, "link"],
                                                   stderr=subprocess.STDOUT).decode("UTF-8")
         except Exception as e:
-            response['full_text'] = self.template.format("No connection")
-            return response
+            return self.create_no_connection_response()
 
         if command_output.startswith("Not connected"):
-            response['full_text'] = self.template.format("No connection")
+            return self.create_no_connection_response()
         else:
             rows = command_output.split('\n')
 
@@ -51,15 +59,16 @@ class Py3status:
 
             icon_path = self.get_icon(signal_strength)
 
-            response['icon'] = icon_path
-            response['full_text'] = self.template.format(ssid)
-            response['cached_until'] = time.time() + self.cache_timeout
-
-        return response
+            return {
+                'icon': icon_path,
+                'icon_color': self.icon_color,
+                'full_text': self.template.format(ssid),
+                'cached_until': self.py3.time_in(self.cache_timeout),
+            }
 
 if __name__ == "__main__":
-    import time
-    module = Py3status()
-    while True:
-        print(module.wifi_status([], []))
-        time.sleep(1)
+    """
+    Run module in test mode.
+    """
+    from py3status.module_test import module_test
+    module_test(Py3status)
