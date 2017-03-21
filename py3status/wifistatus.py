@@ -32,7 +32,7 @@ class Py3status:
 
     @staticmethod
     def get_ssid(rows):
-        return rows[1].split(' ')[1]
+        return rows[1].split(": ")[1]
 
     def _create_no_connection_response(self):
         return {
