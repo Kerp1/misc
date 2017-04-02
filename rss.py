@@ -7,10 +7,10 @@ import uuid
 import datetime
 import os.path
 
-RSS_FEED = ''
 ROOT_DIR = ''
 DOWNLOAD_FILE = ROOT_DIR + '/downloaded'
 REGEX_FILE = ROOT_DIR + '/regex'
+RSS_FILE =  ROOT_DIR + '/rss'
 LOG_FILE = ROOT_DIR + '/log.txt'
 TORRENT_WATCH_DIR = ""
 
@@ -27,6 +27,14 @@ def add_to_downloaded_list(regex, episode):
    with open(DOWNLOAD_FILE, 'a') as downloaded_list:
       downloaded_list.write(regex + ' ' + episode + '\n')
 
+def get_rss_list(path):
+   with open(path) as rss_file:
+      rss_list = []
+      for rss in rss_file:
+         rss_list.append(rss)
+
+   return rss_list
+
 def get_regex_list(path, flags):
    with open(path) as regex_file:
       regex_list = []
@@ -41,20 +49,22 @@ def download_torrent(link, to_path):
                     '--output-document=' + to_path + str(uuid.uuid4()) + '.torrent',
                     '--output-file=' + ROOT_DIR + '/wget_log'])
 
-def parse_rss(feed_url):
+def parse_rss(rss_list):
    log_file = open(LOG_FILE, 'a')
-   rss_feed = feedparser.parse(feed_url)
-   regex_list = get_regex_list(REGEX_FILE, re.IGNORECASE)
-   for regex in regex_list:
-      for entry in rss_feed['entries']:
-         title = entry.title.encode('utf-8')
-         match = regex.match(title)
-         if match:
+   for rss_url in rss_list:
+      rss_feed = feedparser.parse(rss_url)
+      regex_list = get_regex_list(REGEX_FILE, re.IGNORECASE)
+      for regex in regex_list:
+         for entry in rss_feed['entries']:
+            title = entry.title
             print(title)
-            if not torrent_already_downloaded(regex.pattern, match.group(1)):
-               log_file.write(str(datetime.datetime.now()) + 'Downloading: ' + title + '\n')
-               download_torrent(entry.links[0].href, TORRENT_WATCH_DIR)
-               add_to_downloaded_list(regex.pattern, match.group(1))
+            match = regex.match(title)
+            if match:
+               print(title)
+               if not torrent_already_downloaded(regex.pattern, match.group(1)):
+                  log_file.write(str(datetime.datetime.now()) + 'Downloading: ' + title + '\n')
+                  download_torrent(entry.links[0].href, TORRENT_WATCH_DIR)
+                  add_to_downloaded_list(regex.pattern, match.group(1))
 
    log_file.close()
 
@@ -73,4 +83,5 @@ if __name__ == "__main__":
    if not os.path.exists(REGEX_FILE):
       setup()
 
-   parse_rss(RSS_FEED)
+   rss_list = get_rss_list(RSS_FILE)
+   parse_rss(rss_list)
