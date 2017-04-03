@@ -31,8 +31,7 @@ def get_rss_list(path):
    with open(path) as rss_file:
       rss_list = []
       for rss in rss_file:
-         split_line = rss.split()
-         rss_list.append((split_line[0], int(split_line[1])))
+         rss_list.append(rss)
 
    return rss_list
 
@@ -66,7 +65,7 @@ def download_torrent(entry, link, to_path):
 
 
 def parse_rss(rss_list):
-   for (rss_url, link_position) in rss_list:
+   for rss_url in rss_list:
       rss_feed = feedparser.parse(rss_url)
       regex_list = get_regex_list(REGEX_FILE, re.IGNORECASE)
       for regex in regex_list:
