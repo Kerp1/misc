@@ -12,7 +12,7 @@ import argparse
 import urllib.request
 import urllib.parse
 
-PASTEBIN_URL = "http://pastebin.com/api/api_post.php"
+PASTEBIN_URL = "https://pastebin.com/api/api_post.php"
 
 def paste(data, dev_key, pastebin_url):
     pastebin_vars = dict(
